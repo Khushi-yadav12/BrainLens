@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Brain Tumor Detection — Upload brain MRI scans for AI-powered tumor classification, visual detection, and geometric volume/mass calculations.">
+    <title>BrainLens : Brain Tumour Detection and Tumour Volume Analyzer using Deep Learning</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <img src="/static/images/logo.jpeg" alt="BrainLens Logo" class="logo-icon">
+            </div>
+
+            <nav class="nav-tabs-wrapper">
+                <div class="tab-pill-container">
+                    <button class="tab-btn active" data-tab="scanner" id="tabScanner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <circle cx="12" cy="12" r="4"/>
+                            <path d="M3 12h3M18 12h3M12 3v3M12 18v3"/>
+                        </svg>
+                        Detection
+                    </button>
+                    <button class="tab-btn" data-tab="analyzer" id="tabAnalyzer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        Volume Analyzer
+                    </button>
+                </div>
+                <button class="btn btn-ghost" id="themeToggleBtn" aria-label="Toggle Dark Mode" style="border-radius: 50%; padding: 8px; border: none; margin-left: 8px;">
+                    <svg id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                    </svg>
+                    <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="hidden">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-inner">
+
+
+            <h2 class="hero-title">Brain Tumour Detection<br>& Tumour Volume Analyzer</h2>
+            <p class="hero-desc">Upload a brain MRI scan for AI-powered tumor classification, visual segmentation overlay, and geometric volume estimations.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- ═══════════════════════════════════════════════════════
+             TAB 1: MRI SCANNER (existing functionality)
+             ═══════════════════════════════════════════════════════ -->
+        <div class="tab-content active" id="scannerTab">
+
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+<div class="card upload-card">
+                    <div class="card-header">
+                        <h2>Upload MRI Scan</h2>
+                        <p>Drag & drop a brain MRI image or click to browse</p>
+                    </div>
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-zone-content" id="dropContent">
+                            <div class="drop-icon">
+                                <svg viewBox="0 0 64 64" fill="none">
+                                    <rect x="8" y="16" width="48" height="36" rx="4" stroke="currentColor" stroke-width="2" opacity="0.4"/>
+                                    <path d="M32 28 L32 44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M26 34 L32 28 L38 34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="22" cy="26" r="3" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                                </svg>
+                            </div>
+                            <p class="drop-text">Drop your MRI scan here</p>
+                            <p class="drop-subtext">Supports JPG, PNG, BMP, TIFF</p>
+                            <button class="btn btn-primary" id="browseBtn">Browse Files</button>
+                        </div>
+                        <div class="drop-zone-preview hidden" id="dropPreview">
+                            <img id="previewImage" alt="Preview">
+                            <div class="preview-overlay">
+                                <button class="btn btn-ghost" id="removeBtn">✕ Remove</button>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                    </div>
+                    <button class="btn btn-analyze" id="analyzeBtn" disabled>
+                        <span class="btn-text">Analyze Scan</span>
+                        <span class="btn-loader hidden" id="btnLoader">
+                            <span class="spinner"></span>
+                            Processing...
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading Animation -->
+            <section class="loading-section hidden" id="loadingSection">
+                <div class="card loading-card">
+
+                    <!-- Scan Image Display -->
+                    <div class="scan-display">
+                        <div class="scan-viewport" id="scanViewport">
+                            <img id="scanningImage" alt="Scanning…" class="scan-img">
+
+                            <!-- green scan line -->
+                            <div class="scan-line" id="scanLine"></div>
+
+                            <!-- scanline glow reflection -->
+                            <div class="scan-glow" id="scanGlow"></div>
+
+                            <!-- grid overlay -->
+                            <div class="scan-grid"></div>
+
+                            <!-- corner brackets -->
+                            <span class="scan-corner tl"></span>
+                            <span class="scan-corner tr"></span>
+                            <span class="scan-corner bl"></span>
+                            <span class="scan-corner br"></span>
+
+                            <!-- HUD labels -->
+                            <div class="scan-hud-label top-left">MRI SCAN</div>
+                            <div class="scan-hud-label top-right" id="scanStatus">SCANNING…</div>
+                            <div class="scan-hud-label bottom-left">BrainLens</div>
+                            <div class="scan-hud-label bottom-right" id="scanPct">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="loading-steps" style="margin-top: 28px;">
+                        <div class="step active" id="step1">
+                            <span class="step-indicator"></span>
+                            <span>Preprocessing image...</span>
+                        </div>
+                        <div class="step" id="step2">
+                            <span class="step-indicator"></span>
+                            <span>Running classification model...</span>
+                        </div>
+                        <div class="step" id="step3">
+                            <span class="step-indicator"></span>
+                            <span>Detecting tumor regions...</span>
+                        </div>
+                        <div class="step" id="step4">
+                            <span class="step-indicator"></span>
+                            <span>Generating results...</span>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- Results Section -->
+            <section class="results-section hidden" id="resultsSection">
+                <!-- Classification Result -->
+<div class="card result-classification" id="classificationCard">
+                    <div class="result-badge" id="resultBadge">
+                        <div class="badge-icon" id="badgeIcon"></div>
+                        <div class="badge-info">
+                            <h3 id="resultLabel">—</h3>
+                            <p id="resultSubtext">Classification Result</p>
+                        </div>
+                    </div>
+                    <div class="confidence-bar-wrapper">
+                        <div class="confidence-header">
+                            <span>Confidence</span>
+                            <span class="confidence-value" id="confidenceValue">—</span>
+                        </div>
+                        <div class="confidence-track">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Comparison -->
+<div class="card result-images">
+                    <div class="card-header">
+                        <h2>Detection Result</h2>
+                        <p>Original scan vs. tumor region overlay</p>
+                    </div>
+                    <div class="image-compare">
+                        <div class="compare-item">
+                            <h4>Original MRI</h4>
+                            <div class="image-frame">
+                                <img id="originalImg" alt="Original MRI Scan">
+                            </div>
+                        </div>
+                        <div class="compare-divider">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                        <div class="compare-item">
+                            <h4>Tumor Detection</h4>
+                            <div class="image-frame">
+                                <img id="contourImg" alt="Tumor Detection Result">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Pipeline -->
+<div class="card result-pipeline">
+                    <div class="card-header">
+                        <h2>Processing Pipeline</h2>
+                        <p>Step-by-step OpenCV image processing stages</p>
+                    </div>
+                    <div class="pipeline-grid">
+                        <div class="pipeline-step">
+                            <span class="pipe-num">01</span>
+                            <h4>Grayscale</h4>
+                            <div class="image-frame small">
+                                <img id="grayImg" alt="Grayscale">
+                            </div>
+                        </div>
+                        <div class="pipeline-step">
+                            <span class="pipe-num">02</span>
+                            <h4>Thresholding</h4>
+                            <div class="image-frame small">
+                                <img id="threshImg" alt="Thresholding">
+                            </div>
+                        </div>
+                        <div class="pipeline-step">
+                            <span class="pipe-num">03</span>
+                            <h4>Morphology</h4>
+                            <div class="image-frame small">
+                                <img id="morphImg" alt="Morphological Ops">
+                            </div>
+                        </div>
+                        <div class="pipeline-step">
+                            <span class="pipe-num">04</span>
+                            <h4>Canny Edge</h4>
+                            <div class="image-frame small">
+                                <img id="cannyImg" alt="Canny Edge Detection">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detection Metrics -->
+<div class="card result-metrics" id="metricsCard">
+                    <div class="card-header">
+                        <h2>Detection Metrics</h2>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span class="metric-label">Tumor Area</span>
+                            <span class="metric-value" id="metricArea">—</span>
+                            <span class="metric-unit">pixels²</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Area Ratio</span>
+                            <span class="metric-value" id="metricRatio">—</span>
+                            <span class="metric-unit">tumor / brain</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Status</span>
+                            <span class="metric-value" id="metricStatus">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Link to Volume Analyzer Tab -->
+                <div class="view-volume-wrapper" id="viewVolumeWrapper" style="text-align: center; margin: 32px 0;">
+                    <button class="btn btn-primary" id="goToVolumeBtn" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="margin-right: 8px;">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        View Full Volume Analysis
+                    </button>
+                </div>
+
+                <!-- New Scan Button -->
+                <div class="new-scan-wrapper">
+                    <button class="btn btn-primary btn-large" id="newScanBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Analyze Another Scan
+                    </button>
+                </div>
+            </section>
+
+        </div><!-- /scannerTab -->
+
+
+        <!-- ═══════════════════════════════════════════════════════
+             TAB 2: TUMOR VOLUME ANALYZER (Automatic)
+             ═══════════════════════════════════════════════════════ -->
+        <div class="tab-content" id="analyzerTab">
+            
+            <div id="analyzerEmptyState" class="card" style="text-align: center; padding: 64px 32px; max-width: 600px; margin: 40px auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64" style="color: var(--border); margin-bottom: 24px;">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <h2 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">No Scan Data Found</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Please upload and analyze a brain MRI scan in the 'Brain Tumor' tab to generate a volume analysis.</p>
+                <button class="btn btn-primary" onclick="document.getElementById('tabScanner').click()">
+                    Go to Scanner
+                </button>
+            </div>
+
+            <div id="analyzerResults" class="hidden">
+                <!-- ═══ Tumor Volume Analyzer Component ═══ -->
+                <div class="card volume-analyzer-card" id="volumeAnalyzerCard" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-header">
+                        <h2>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" style="vertical-align:-4px;margin-right:8px;color:var(--accent-primary)">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                            Estimated Volume Metrics
+                        </h2>
+                        <p>Computed 3D volume from 2D contour and physical projection algorithms with clinical risk insight.</p>
+                    </div>
+
+                    <!-- Volume Metrics Row -->
+                    <div class="va-metrics-row">
+                        <div class="va-metric-card">
+                            <div class="va-metric-icon" style="background: rgba(99,102,241,0.12)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" width="22" height="22">
+                                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                                </svg>
+                            </div>
+                            <span class="va-metric-label">Est. Volume</span>
+                            <span class="va-metric-value" id="vaVolume">—</span>
+                            <span class="va-metric-unit">cm³</span>
+                        </div>
+                        <div class="va-metric-card">
+                            <div class="va-metric-icon" style="background: rgba(6,182,212,0.12)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" width="22" height="22">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 12h8"/>
+                                </svg>
+                            </div>
+                            <span class="va-metric-label">Est. Diameter</span>
+                            <span class="va-metric-value" id="vaDiameter">—</span>
+                            <span class="va-metric-unit">cm</span>
+                        </div>
+                        <div class="va-metric-card">
+                            <div class="va-metric-icon" id="vaRiskIcon" style="background: rgba(234,179,8,0.12)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" width="22" height="22">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <span class="va-metric-label">Risk Level</span>
+                            <span class="va-metric-value" id="vaRiskLevel">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Risk Gauge -->
+                    <div class="va-gauge-section">
+                        <h4>Risk Assessment</h4>
+                        <div class="va-gauge-track">
+                            <div class="va-gauge-fill" id="vaGaugeFill" style="width:0%"></div>
+                            <div class="va-gauge-marker" id="vaGaugeMarker" style="left:0%"></div>
+                        </div>
+                        <div class="va-gauge-labels">
+                            <span>Low</span><span>Moderate</span><span>High</span><span>Critical</span>
+                        </div>
+                    </div>
+
+                    <!-- Treatment Indicators -->
+                    <div class="va-treatment-section">
+                        <h4>Treatment Suitability Indicators</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; margin-top: -6px;">Based purely on volumetric threshold heuristics.</p>
+                        <div class="va-treatment-chips">
+                            <div class="va-chip" id="chipSurgery">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M18 2l4 4-9.5 9.5-4-4L18 2z"/>
+                                    <path d="M8.5 11.5l-5 5a2.12 2.12 0 003 3l5-5"/>
+                                </svg>
+                                Surgery
+                            </div>
+                            <div class="va-chip" id="chipRadiation">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <circle cx="12" cy="12" r="5"/>
+                                    <line x1="12" y1="1" x2="12" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="23"/>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                    <line x1="1" y1="12" x2="3" y2="12"/>
+                                    <line x1="21" y1="12" x2="23" y2="12"/>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                </svg>
+                                Radiation
+                            </div>
+                            <div class="va-chip" id="chipChemo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M14 2v6a2 2 0 002 2h6"/>
+                                    <path d="M6 18a2 2 0 01-2-2V6a2 2 0 012-2h6l6 6v6a2 2 0 01-2 2H6z"/>
+                                    <path d="M9 14l2 2 4-4"/>
+                                </svg>
+                                Chemotherapy
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Note -->
+                    <div class="va-note" id="vaClinicalNote" style="background: rgba(6,182,212,0.05); border-left-color: #06b6d4;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" width="18" height="18" style="flex-shrink:0; margin-top:2px;">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        <span id="vaNoteText" style="color: var(--accent-secondary); line-height: 1.5;">—</span>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /analyzerTab -->
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>BrainLens : Brain Tumour Detection and Tumour Volume Analyzer using Deep Learning</p>
+        <p class="footer-sub">For educational and research purposes only. Not a medical diagnostic tool.</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection — Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ══════ RESET & TOKENS ══════ */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg: #0b0f1a;
+            --card: rgba(17,24,39,.6);
+            --border: rgba(99,102,241,.15);
+            --accent: #6366f1;
+            --cyan: #06b6d4;
+            --grad: linear-gradient(135deg,#6366f1,#06b6d4);
+            --txt: #f1f5f9;
+            --txt2: #94a3b8;
+            --txt3: #64748b;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --font: 'Inter', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--bg); color: var(--txt); overflow-x: hidden; }
+
+        /* ══════ SLIDE SYSTEM ══════ */
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide::before {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,.06) 0%, transparent 70%);
+            top: -150px; right: -150px;
+            pointer-events: none;
+        }
+        .slide::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6,182,212,.04) 0%, transparent 70%);
+            bottom: -120px; left: -120px;
+            pointer-events: none;
+        }
+        .slide-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 0;
+        }
+
+        /* ══════ SLIDE HEADER BAR ══════ */
+        .slide-topbar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 18px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: .75rem;
+            color: var(--txt3);
+            border-bottom: 1px solid var(--border);
+            background: rgba(10,14,26,.5);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        .slide-topbar .dept {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        .slide-num {
+            font-family: var(--mono);
+            background: rgba(99,102,241,.1);
+            padding: 3px 12px;
+            border-radius: 100px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ══════ TITLE SLIDE ══════ */
+        .title-slide { text-align: center; }
+        .title-slide h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-slide .subtitle {
+            font-size: 1.25rem;
+            color: var(--txt2);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+        .title-slide .meta {
+            font-size: .88rem;
+            color: var(--txt3);
+            line-height: 1.8;
+        }
+        .title-slide .meta strong { color: var(--txt2); }
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 100px;
+            background: rgba(99,102,241,.08);
+            border: 1px solid var(--border);
+            font-size: .82rem;
+            color: var(--txt2);
+            margin-bottom: 32px;
+        }
+        .title-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        /* ══════ CONTENT SLIDES ══════ */
+        .slide h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .slide h2 .num {
+            font-family: var(--mono);
+            font-size: 1rem;
+            color: var(--accent);
+            background: rgba(99,102,241,.1);
+            padding: 4px 14px;
+            border-radius: 100px;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+        .slide .lead {
+            font-size: 1.05rem;
+            color: var(--txt2);
+            margin-bottom: 36px;
+            max-width: 800px;
+            line-height: 1.65;
+        }
+
+        /* ══════ CARDS / GRID ══════ */
+        .card-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .g2 { grid-template-columns: 1fr 1fr; }
+        .g3 { grid-template-columns: 1fr 1fr 1fr; }
+        .g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(12px);
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h3 .icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .card p, .card li {
+            font-size: .88rem;
+            color: var(--txt2);
+            line-height: 1.65;
+        }
+        .card ul { list-style: none; padding: 0; }
+        .card ul li { padding: 4px 0; }
+        .card ul li::before {
+            content: '→';
+            color: var(--accent);
+            margin-right: 8px;
+            font-weight: 700;
+        }
+
+        .icon-purple { background: rgba(99,102,241,.15); }
+        .icon-cyan { background: rgba(6,182,212,.15); }
+        .icon-red { background: rgba(239,68,68,.12); }
+        .icon-green { background: rgba(34,197,94,.12); }
+        .icon-amber { background: rgba(245,158,11,.12); }
+
+        /* ══════ TABLE ══════ */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .88rem;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,.05);
+        }
+        th {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        td { color: var(--txt2); }
+        tr:hover td { color: var(--txt); }
+
+        /* ══════ PIPELINE FLOW ══════ */
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pipe-step {
+            text-align: center;
+            padding: 18px 22px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 130px;
+        }
+        .pipe-step .step-num {
+            font-family: var(--mono);
+            font-size: .7rem;
+            color: var(--accent);
+            background: rgba(99,102,241,.1);
+            padding: 2px 10px;
+            border-radius: 100px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        .pipe-step h4 {
+            font-size: .85rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .pipe-step p {
+            font-size: .72rem;
+            color: var(--txt3);
+        }
+        .pipe-arrow {
+            font-size: 1.2rem;
+            color: var(--accent);
+            padding: 0 6px;
+            flex-shrink: 0;
+        }
+
+        /* ══════ CODE BLOCK ══════ */
+        .code-block {
+            background: rgba(0,0,0,.4);
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: var(--mono);
+            font-size: .78rem;
+            line-height: 1.7;
+            color: var(--txt2);
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .code-block .kw { color: #c084fc; }
+        .code-block .fn { color: #67e8f9; }
+        .code-block .str { color: #86efac; }
+        .code-block .num { color: #fdba74; }
+        .code-block .cmt { color: #64748b; font-style: italic; }
+
+        /* ══════ ARCHITECTURE BOX ══════ */
+        .arch-box {
+            font-family: var(--mono);
+            font-size: .78rem;
+            line-height: 1.6;
+            background: rgba(0,0,0,.35);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 32px;
+            color: var(--txt2);
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* ══════ STAT CARDS ══════ */
+        .stat-card {
+            text-align: center;
+            padding: 32px 20px;
+        }
+        .stat-card .stat-val {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-label {
+            font-size: .82rem;
+            color: var(--txt3);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        /* ══════ FUTURE ITEMS ══════ */
+        .future-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        .future-item:last-child { border-bottom: none; }
+        .future-num {
+            font-family: var(--mono);
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--cyan);
+            background: rgba(6,182,212,.1);
+            padding: 4px 12px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .future-item h4 {
+            font-size: .95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .future-item p {
+            font-size: .82rem;
+            color: var(--txt2);
+        }
+
+        /* ══════ REF LIST ══════ */
+        .ref-list {
+            list-style: none;
+            padding: 0;
+            columns: 2;
+            column-gap: 40px;
+        }
+        .ref-list li {
+            font-size: .82rem;
+            color: var(--txt2);
+            line-height: 1.6;
+            padding: 8px 0;
+            break-inside: avoid;
+        }
+        .ref-list li strong {
+            color: var(--txt);
+            font-size: .72rem;
+            font-family: var(--mono);
+            background: rgba(99,102,241,.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+
+        /* ══════ NAV DOTS ══════ */
+        .nav-dots {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .nav-dots a {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.15);
+            display: block;
+            transition: .3s;
+        }
+        .nav-dots a:hover,
+        .nav-dots a.active {
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(99,102,241,.5);
+            transform: scale(1.3);
+        }
+
+        /* ══════ PRINT ══════ */
+        @media print {
+            .slide { page-break-after: always; min-height: auto; padding: 40px; }
+            .nav-dots { display: none; }
+            body { background: #fff; color: #111; }
+            .slide-topbar { display: none; }
+        }
+
+        /* ══════ RESPONSIVE ══════ */
+        @media (max-width: 900px) {
+            .slide { padding: 40px 24px; }
+            .slide-topbar { padding: 14px 24px; }
+            .g2, .g3, .g4 { grid-template-columns: 1fr; }
+            .title-slide h1 { font-size: 2rem; }
+            .pipeline-flow { flex-direction: column; }
+            .pipe-arrow { transform: rotate(90deg); }
+            .ref-list { columns: 1; }
+            .nav-dots { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 1: TITLE
+     ════════════════════════════════════════════════════ -->
+<section class="slide title-slide" id="s1">
+    <div class="slide-topbar">
+        <span class="dept">Department of Engineering & Technology · Gurugram University</span>
+        <span class="slide-num">01 / 11</span>
+    </div>
+    <div class="title-badge"><span class="dot"></span> Project Presentation</div>
+    <h1>Brain Tumor Detection<br>using OpenCV & Deep Learning</h1>
+    <p class="subtitle">A Channel Attention Modules approach to classify Brain MRI Scans<br>and detect Tumor regions using ACU-Net, PyTorch & OpenCV</p>
+    <p class="meta">
+        <strong>Department of Engineering & Technology</strong><br>
+        Gurugram University, Gurugram<br><br>
+        March 2026
+    </p>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 2: TABLE OF CONTENTS
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s2">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">02 / 11</span>
+    </div>
+    <h2><span class="num">00</span> Table of Contents</h2>
+    <p class="lead">Overview of all sections covered in this presentation.</p>
+    <div class="card-grid g2">
+        <div class="card">
+            <ul>
+                <li><strong>01</strong> &nbsp; Introduction</li>
+                <li><strong>02</strong> &nbsp; Problem Statement</li>
+                <li><strong>03</strong> &nbsp; Project Objectives</li>
+                <li><strong>04</strong> &nbsp; Proposed Methodology</li>
+                <li><strong>05</strong> &nbsp; Processing Pipeline</li>
+            </ul>
+        </div>
+        <div class="card">
+            <ul>
+                <li><strong>06</strong> &nbsp; Tools & Technologies</li>
+                <li><strong>07</strong> &nbsp; System Architecture</li>
+                <li><strong>08</strong> &nbsp; Implementation</li>
+                <li><strong>09</strong> &nbsp; Expected Outcome</li>
+                <li><strong>10</strong> &nbsp; Future Scope</li>
+                <li><strong>11</strong> &nbsp; References</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 3: INTRODUCTION
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s3">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">03 / 11</span>
+    </div>
+    <h2><span class="num">01</span> Introduction</h2>
+    <p class="lead">Brain tumors are among the most critical health challenges worldwide, with over 300,000 new cases diagnosed annually. Early and accurate detection is crucial for patient survival.</p>
+    <div class="card-grid g3">
+        <div class="card">
+            <h3><span class="icon icon-purple">🧠</span> MRI Imaging</h3>
+            <p>MRI is the most common imaging technique for detecting abnormal brain tumors, providing detailed soft-tissue contrast without radiation.</p>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-red">⏱️</span> Manual Limitations</h3>
+            <p>Traditional manual analysis is time-consuming, subjective, and prone to human error — especially with large scan volumes.</p>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-cyan">🤖</span> AI Solution</h3>
+            <p>Computer-aided diagnosis using deep learning enables automated, consistent, and fast classification of brain MRI scans.</p>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 4: PROBLEM STATEMENT
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s4">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">04 / 11</span>
+    </div>
+    <h2><span class="num">02</span> Problem Statement</h2>
+    <p class="lead">Manual analysis of brain MRI scans suffers from critical limitations that hinder timely and accurate diagnosis.</p>
+    <table>
+        <thead>
+            <tr><th>Challenge</th><th>Impact</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Volume</strong></td><td>Thousands of scans daily in large hospitals create review bottlenecks</td></tr>
+            <tr><td><strong>Subjectivity</strong></td><td>Interpretation varies between radiologists; fatigue leads to missed diagnoses</td></tr>
+            <tr><td><strong>Time</strong></td><td>Detailed scan analysis takes 15–30 minutes per case</td></tr>
+            <tr><td><strong>Access</strong></td><td>Many regions lack specialized neuro-radiologists</td></tr>
+            <tr><td><strong>Early Detection</strong></td><td>Small or early-stage tumors are easily missed in manual review</td></tr>
+        </tbody>
+    </table>
+    <div style="margin-top:28px;">
+        <div class="card" style="border-left: 3px solid var(--danger); max-width: 800px;">
+            <p><strong style="color:var(--danger);">Need:</strong> An automated, reliable, and fast system to classify brain MRI scans and visually highlight suspicious tumor regions to assist medical professionals.</p>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 5: PROJECT OBJECTIVES
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s5">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">05 / 11</span>
+    </div>
+    <h2><span class="num">03</span> Project Objectives</h2>
+    <p class="lead">The project targets five key objectives to deliver a complete brain tumor detection solution.</p>
+    <div class="card-grid g2" style="max-width:900px;">
+        <div class="card">
+            <h3><span class="icon icon-purple">🔬</span> Classify</h3>
+            <p>Classify MRI scans as <strong>Tumor</strong> or <strong>No Tumor</strong> using ACU-Net attention mechanisms with up to 100% accuracy.</p>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-red">🎯</span> Detect</h3>
+            <p>Detect and highlight tumor regions using a 6-stage OpenCV image processing pipeline with contour overlay.</p>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-cyan">📊</span> Visualize</h3>
+            <p>Show intermediate processing stages (grayscale, threshold, morphology, edge detection) for full transparency.</p>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-green">🌐</span> Deliver</h3>
+            <p>Package as a premium web application with drag-and-drop upload, real-time analysis, and responsive design.</p>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 6: PROPOSED METHODOLOGY
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s6">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">06 / 11</span>
+    </div>
+    <h2><span class="num">04</span> Proposed Methodology</h2>
+    <p class="lead">The system combines Deep Learning classification with OpenCV-based image processing.</p>
+    <div class="card-grid g2">
+        <div class="card">
+            <h3><span class="icon icon-purple">🧬</span> Part 1: Classification (ACU-Net)</h3>
+            <ul>
+                <li>Attention mechanisms from ImageNet pre-trained ACU-Net</li>
+                <li>Implement Spatial Attention to map boundary regions</li>
+                <li>Implement Channel Attention to extract critical features</li>
+                <li>Data augmentation with vertical flips</li>
+                <li>253 images: 155 abnormal, 98 normal</li>
+                <li>Achieves up to 100% validation accuracy</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-cyan">🔍</span> Part 2: Detection (OpenCV)</h3>
+            <ul>
+                <li>Grayscale conversion for single-channel processing</li>
+                <li>Binary thresholding (threshold = 155)</li>
+                <li>Morphological closing + erosion + dilation</li>
+                <li>Adaptive Canny edge detection</li>
+                <li>Contour extraction & area analysis</li>
+                <li>Red overlay on detected tumor regions</li>
+            </ul>
+        </div>
+    </div>
+    <div style="margin-top:20px;">
+        <div class="card">
+            <h3><span class="icon icon-amber">⚡</span> Enhanced Dual-Pipeline</h3>
+            <p>The system operates in two modes: <strong>DL Segmentation Mode</strong> (loads trained PyTorch .pth file when available) and <strong>Heuristic Mode</strong> (OpenCV-based feature analysis with intensity ratio, variance, contour ratio, and bilateral asymmetry scoring). This ensures the app works immediately without GPU or dataset.</p>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 7: PROCESSING PIPELINE
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s7">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">07 / 11</span>
+    </div>
+    <h2><span class="num">05</span> Processing Pipeline</h2>
+    <p class="lead">The OpenCV detection pipeline processes MRI images through six sequential stages.</p>
+    <div class="pipeline-flow">
+        <div class="pipe-step">
+            <span class="step-num">01</span>
+            <h4>Grayscale</h4>
+            <p>BGR → Gray</p>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+            <span class="step-num">02</span>
+            <h4>Threshold</h4>
+            <p>Binary @ 155</p>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+            <span class="step-num">03</span>
+            <h4>Morphology</h4>
+            <p>Close + Erode + Dilate</p>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+            <span class="step-num">04</span>
+            <h4>Canny Edge</h4>
+            <p>Auto-threshold</p>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+            <span class="step-num">05</span>
+            <h4>Contours</h4>
+            <p>Find boundaries</p>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">
+            <span class="step-num">06</span>
+            <h4>Overlay</h4>
+            <p>Red highlight</p>
+        </div>
+    </div>
+    <div style="margin-top:32px;">
+        <table>
+            <thead><tr><th>#</th><th>Stage</th><th>OpenCV Function</th><th>Key Parameters</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Grayscale</td><td><code>cv2.cvtColor()</code></td><td>COLOR_BGR2GRAY</td></tr>
+                <tr><td>2</td><td>Thresholding</td><td><code>cv2.threshold()</code></td><td>thresh=155, max=255, BINARY</td></tr>
+                <tr><td>3</td><td>Morphology</td><td><code>cv2.morphologyEx()</code></td><td>MORPH_CLOSE, erode×14, dilate×13</td></tr>
+                <tr><td>4</td><td>Edge Detection</td><td><code>cv2.Canny()</code></td><td>Auto-computed thresholds (σ=0.33)</td></tr>
+                <tr><td>5</td><td>Contours</td><td><code>cv2.findContours()</code></td><td>RETR_EXTERNAL, min area=500px</td></tr>
+                <tr><td>6</td><td>Overlay</td><td><code>cv2.drawContours()</code></td><td>Red (0,0,255), α=0.3 blend</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 8: TOOLS & TECHNOLOGIES
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s8">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">08 / 11</span>
+    </div>
+    <h2><span class="num">06</span> Tools & Technologies</h2>
+    <p class="lead">Technology stack powering the Brain Tumor Detection system.</p>
+    <div class="card-grid g3">
+        <div class="card">
+            <h3><span class="icon icon-purple">🐍</span> Backend</h3>
+            <ul>
+                <li>Python 3.x</li>
+                <li>Flask 3.1.0</li>
+                <li>OpenCV 4.11.0</li>
+                <li>NumPy 2.2.3</li>
+                <li>Pillow 11.1.0</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-cyan">🧠</span> Deep Learning</h3>
+            <ul>
+                <li>ACU-Net Architecture</li>
+                <li>PyTorch / torchvision</li>
+                <li>PyTorch Library</li>
+                <li>Spatial Attention Modules</li>
+                <li>Channel Attention Modules</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3><span class="icon icon-green">🎨</span> Frontend</h3>
+            <ul>
+                <li>HTML5 Semantic Markup</li>
+                <li>CSS3 Glassmorphism</li>
+                <li>JavaScript ES6+</li>
+                <li>Fetch API</li>
+                <li>Google Fonts (Inter)</li>
+            </ul>
+        </div>
+    </div>
+    <div style="margin-top:20px;">
+        <div class="card" style="max-width:100%;">
+            <h3><span class="icon icon-amber">📐</span> ACU-Net Architecture at a Glance</h3>
+            <p>Deep U-Net architecture integrated with Spatial and Channel Attention modules. Combines spatial mapping with feature intensity extraction. Uses a custom Combined Dice and Cross-Entropy Loss function. Input: 224×224 pixels, normalized with ImageNet statistics.</p>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 9: SYSTEM ARCHITECTURE
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s9">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">09 / 11</span>
+    </div>
+    <h2><span class="num">07</span> System Architecture & Implementation</h2>
+    <p class="lead">End-to-end architecture from user upload to result display.</p>
+    <div class="card-grid g2">
+        <div>
+            <div class="arch-box">┌─────────────────────────────────┐
+│      Browser (Frontend)         │
+│  ┌───────────────────────────┐  │
+│  │  Upload Zone (Drag/Drop)  │  │
+│  └────────────┬──────────────┘  │
+│               │ POST /analyze   │
+│  ┌────────────▼──────────────┐  │
+│  │  Results Dashboard        │  │
+│  │  • Classification Badge   │  │
+│  │  • Image Comparison       │  │
+│  │  • Pipeline Steps         │  │
+│  │  • Detection Metrics      │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
+
+┌─────────────────────────────────┐
+│      Flask Server (Backend)     │
+│  ┌───────────────────────────┐  │
+│  │  classifier.py            │  │
+│  │  ACU-Net Model / Heuristic  │  │
+│  └───────────────────────────┘  │
+│  ┌───────────────────────────┐  │
+│  │  tumor_detector.py        │  │
+│  │  6-Stage OpenCV Pipeline  │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘</div>
+        </div>
+        <div>
+            <div class="card" style="margin-bottom:20px;">
+                <h3>Project Structure</h3>
+                <div class="code-block" style="margin-top:12px;">braintumor/
+├── app.py              <span class="cmt"># Flask server</span>
+├── tumor_detector.py   <span class="cmt"># OpenCV pipeline</span>
+├── classifier.py       <span class="cmt"># Dual-mode classifier</span>
+├── train_model.py      <span class="cmt"># PyTorch training</span>
+├── requirements.txt
+├── static/
+│   ├── css/style.css   <span class="cmt"># Dark theme</span>
+│   ├── js/app.js       <span class="cmt"># Frontend logic</span>
+│   └── uploads/        <span class="cmt"># Runtime images</span>
+└── templates/
+    └── index.html      <span class="cmt"># SPA UI</span></div>
+            </div>
+            <div class="card">
+                <h3>API Endpoints</h3>
+                <table style="margin-top:8px;">
+                    <tr><td><code>GET /</code></td><td>Serve web UI</td></tr>
+                    <tr><td><code>POST /analyze</code></td><td>Upload & analyze MRI</td></tr>
+                    <tr><td><code>GET /static/uploads/*</code></td><td>Serve result images</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 10: EXPECTED OUTCOME
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s10">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">10 / 11</span>
+    </div>
+    <h2><span class="num">08</span> Expected Outcome & Future Scope</h2>
+    <p class="lead">Key performance metrics and roadmap for future enhancements.</p>
+    <div class="card-grid g4" style="margin-bottom:36px;">
+        <div class="card stat-card">
+            <div class="stat-val">100%</div>
+            <div class="stat-label">Max Accuracy</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-val">&lt;2s</div>
+            <div class="stat-label">Analysis Time</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-val">6</div>
+            <div class="stat-label">Pipeline Stages</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-val">253</div>
+            <div class="stat-label">Training Images</div>
+        </div>
+    </div>
+    <div class="card" style="max-width:100%;">
+        <h3 style="margin-bottom:16px;"><span class="icon icon-cyan">🚀</span> Future Scope</h3>
+        <div class="card-grid g2" style="gap:0;">
+            <div>
+                <div class="future-item">
+                    <span class="future-num">01</span>
+                    <div><h4>Multi-Class Classification</h4><p>Glioma, Meningioma, Pituitary tumor types</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">02</span>
+                    <div><h4>U-Net Segmentation</h4><p>Pixel-accurate tumor boundary delineation</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">03</span>
+                    <div><h4>3D Volume Analysis</h4><p>Process full MRI scan series for 3D localization</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">04</span>
+                    <div><h4>Grad-CAM Explainability</h4><p>Visualize CNN attention regions for interpretability</p></div>
+                </div>
+            </div>
+            <div>
+                <div class="future-item">
+                    <span class="future-num">05</span>
+                    <div><h4>DICOM Integration</h4><p>Direct hospital PACS system compatibility</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">06</span>
+                    <div><h4>Cloud Deployment</h4><p>AWS/GCP with GPU acceleration at scale</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">07</span>
+                    <div><h4>Other Brain Diseases</h4><p>Alzheimer's, stroke, Parkinson's detection</p></div>
+                </div>
+                <div class="future-item">
+                    <span class="future-num">08</span>
+                    <div><h4>Mobile Application</h4><p>Companion app for on-the-go analysis</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<hr class="slide-divider">
+
+<!-- ════════════════════════════════════════════════════
+     SLIDE 11: REFERENCES & THANK YOU
+     ════════════════════════════════════════════════════ -->
+<section class="slide" id="s11">
+    <div class="slide-topbar">
+        <span class="dept">Brain Tumor Detection</span>
+        <span class="slide-num">11 / 11</span>
+    </div>
+    <h2><span class="num">09</span> References</h2>
+    <p class="lead">Key papers, datasets, and libraries referenced in this project.</p>
+    <ul class="ref-list">
+        <li><strong>[1]</strong> Shrikanth & Mhadgut (2020). "Brain Tumor Detection using PyTorch and OpenCV." <em>Medium</em>.</li>
+        <li><strong>[2]</strong> Simonyan & Zisserman (2015). "Very Deep Convolutional Networks for Large-Scale Image Recognition." <em>ICLR</em>.</li>
+        <li><strong>[3]</strong> Chakrabarty (2019). "Brain MRI Images for Brain Tumor Detection." <em>Kaggle Dataset</em>.</li>
+        <li><strong>[4]</strong> Howard & Gugger (2020). "Fastai: A Layered API for Deep Learning." <em>Information</em>, 11(2).</li>
+        <li><strong>[5]</strong> Bradski (2000). "The OpenCV Library." <em>Dr. Dobb's Journal</em>.</li>
+        <li><strong>[6]</strong> He et al. (2016). "Deep Residual Learning for Image Recognition." <em>CVPR</em>.</li>
+        <li><strong>[7]</strong> Canny (1986). "A Computational Approach to Edge Detection." <em>IEEE TPAMI</em>.</li>
+        <li><strong>[8]</strong> Flask Documentation — flask.palletsprojects.com</li>
+        <li><strong>[9]</strong> OpenCV Documentation — docs.opencv.org</li>
+        <li><strong>[10]</strong> Python 3 Documentation — docs.python.org</li>
+    </ul>
+
+    <div style="text-align:center; margin-top:60px;">
+        <h2 style="font-size:2.2rem; margin-bottom:12px; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Thank You</h2>
+        <p style="color:var(--txt2); font-size:1rem;">Questions & Discussion</p>
+        <p style="color:var(--txt3); font-size:.82rem; margin-top:24px;">
+            Department of Engineering & Technology · Gurugram University, Gurugram
+        </p>
+    </div>
+</section>
+
+<!-- Navigation Script -->
+<script>
+    // Build nav dots
+    const slides = document.querySelectorAll('.slide');
+    const nav = document.getElementById('navDots');
+    slides.forEach((s, i) => {
+        const a = document.createElement('a');
+        a.href = '#' + s.id;
+        a.title = 'Slide ' + (i + 1);
+        nav.appendChild(a);
+    });
+
+    // Active dot on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                document.querySelectorAll('.nav-dots a').forEach(a => {
+                    a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                });
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
