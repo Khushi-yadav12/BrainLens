@@ -84,6 +84,32 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ── Logo Zoom Modal ────────────────────────────────────────
+    const logoImg          = document.getElementById("logoImg");
+    const logoModalOverlay = document.getElementById("logoModalOverlay");
+    const logoModalClose   = document.getElementById("logoModalClose");
+
+    function openLogoModal() {
+        logoModalOverlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeLogoModal() {
+        logoModalOverlay.classList.remove("open");
+        document.body.style.overflow = "";
+    }
+
+    if (logoImg)          logoImg.addEventListener("click", openLogoModal);
+    if (logoModalClose)   logoModalClose.addEventListener("click", closeLogoModal);
+    if (logoModalOverlay) {
+        logoModalOverlay.addEventListener("click", (e) => {
+            if (e.target === logoModalOverlay) closeLogoModal();
+        });
+    }
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLogoModal();
+    });
+
     // ── Tabs Switching ─────────────────────────────────────────
     const tabs = document.querySelectorAll(".tab-btn");
     const tabContents = document.querySelectorAll(".tab-content");

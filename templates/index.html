@@ -15,8 +15,9 @@
     <!-- Header Navbar -->
     <header class="header">
         <div class="header-inner">
-            <div class="logo">
-                <img src="/static/images/logo.jpeg" alt="BrainLens Logo" class="logo-icon">
+            <div class="logo" id="logoWrapper">
+                <img src="/static/images/logo.jpeg" alt="BrainLens Logo" class="logo-icon" id="logoImg" title="Click to zoom">
+                <span class="logo-text">Brain<span class="logo-highlight">Lens</span></span>
             </div>
 
             <nav class="nav-tabs-wrapper">
@@ -439,6 +440,15 @@
         <p>BrainLens : Brain Tumour Detection and Tumour Volume Analyzer using Deep Learning</p>
         <p class="footer-sub">For educational and research purposes only. Not a medical diagnostic tool.</p>
     </footer>
+
+    <!-- Logo Zoom Modal -->
+    <div class="logo-modal-overlay" id="logoModalOverlay" role="dialog" aria-modal="true" aria-label="BrainLens Logo">
+        <div class="logo-modal-box" id="logoModalBox">
+            <button class="logo-modal-close" id="logoModalClose" aria-label="Close">&times;</button>
+            <img src="/static/images/logo.jpeg" alt="BrainLens Logo Zoomed" class="logo-modal-img">
+            <p class="logo-modal-caption">Brain<strong>Lens</strong></p>
+        </div>
+    </div>
 
     <script src="/static/js/app.js"></script>
 </body>

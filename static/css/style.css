@@ -2,64 +2,92 @@
    NeuroScan AI — Clean Minimal Light Theme
    ════════════════════════════════════════════════════════════════ */
 
-/* ── Design Tokens ──────────────────────────────────────────── */
+/* ── Design Tokens (Light Mode) ────────────────────────────── */
 :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
-    --bg-card: #ffffff;
-    --bg-card-hover: #ffffff;
+    /* Backgrounds */
+    --bg-primary:    #ffffff;
+    --bg-secondary:  #f3f4f6;
+    --bg-card:       #ffffff;
+    --bg-card-hover: #f9fafb;
+    --bg-header:     rgba(255, 255, 255, 0.92);
 
-    --border: #e5e7eb;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    /* Borders & Shadows */
+    --border:  #d1d5db;
+    --shadow:  0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04);
 
-    --accent-primary: #111827;
-    --accent-secondary: #374151;
+    /* Accent (interactive / brand) */
+    --accent:        #4f46e5;   /* indigo-600 */
+    --accent-hover:  #4338ca;   /* indigo-700 */
+    --accent-text:   #ffffff;
+    --accent-soft:   rgba(79,70,229,0.10);
 
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #9ca3af;
+    /* Kept for backwards compat, point to accent */
+    --accent-primary:   #4f46e5;
+    --accent-secondary: #6366f1;
 
-    --danger: #dc2626;
-    --danger-bg: #fee2e2;
-    --success: #16a34a;
-    --success-bg: #dcfce7;
-    --warning: #ca8a04;
-    --warning-bg: #fef9c3;
+    /* Text */
+    --text-primary:   #111827;
+    --text-secondary: #374151;
+    --text-muted:     #9ca3af;
 
+    /* Semantic */
+    --danger:      #dc2626;
+    --danger-bg:   #fee2e2;
+    --success:     #16a34a;
+    --success-bg:  #dcfce7;
+    --warning:     #b45309;
+    --warning-bg:  #fef3c7;
+
+    /* Radii */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
 
+    /* Typography */
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-mono:    'JetBrains Mono', monospace;
 
     --transition: 0.2s ease-in-out;
 }
 
+
+/* ── Design Tokens (Dark Mode) ──────────────────────────────── */
 :root.dark-mode {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-card: #1e293b;
-    --bg-card-hover: #334155;
+    /* Backgrounds */
+    --bg-primary:    #0f172a;
+    --bg-secondary:  #1e293b;
+    --bg-card:       #1e293b;
+    --bg-card-hover: #273549;
+    --bg-header:     rgba(15, 23, 42, 0.95);
 
-    --border: #334155;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    /* Borders & Shadows */
+    --border:  #334155;
+    --shadow:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
 
-    --accent-primary: #38bdf8;
-    --accent-secondary: #7dd3fc;
+    /* Accent (same indigo, slightly lighter for dark bg) */
+    --accent:        #6366f1;
+    --accent-hover:  #818cf8;
+    --accent-text:   #ffffff;
+    --accent-soft:   rgba(99,102,241,0.15);
 
-    --text-primary: #f8fafc;
+    --accent-primary:   #6366f1;
+    --accent-secondary: #818cf8;
+
+    /* Text */
+    --text-primary:   #f1f5f9;
     --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --text-muted:     #64748b;
 
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.15);
-    --success: #22c55e;
-    --success-bg: rgba(34, 197, 94, 0.15);
-    --warning: #eab308;
-    --warning-bg: rgba(234, 179, 8, 0.15);
+    /* Semantic */
+    --danger:      #f87171;
+    --danger-bg:   rgba(248, 113, 113, 0.15);
+    --success:     #4ade80;
+    --success-bg:  rgba(74, 222, 128, 0.15);
+    --warning:     #fbbf24;
+    --warning-bg:  rgba(251, 191, 36, 0.15);
 }
+
 
 body {
     transition: background-color var(--transition), color var(--transition);
@@ -93,8 +121,9 @@ body {
 
 /* ── Header Navbar ────────────────────────────────────────────── */
 .header {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--bg-header);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -125,23 +154,112 @@ body {
     box-shadow: 0 2px 8px rgba(0, 100, 255, 0.25), 0 0 0 2px rgba(255,255,255,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     flex-shrink: 0;
+    cursor: pointer;
 }
 
 .logo-icon:hover {
-    transform: scale(1.06);
-    box-shadow: 0 4px 16px rgba(0, 100, 255, 0.35), 0 0 0 2px rgba(255,255,255,0.12);
+    transform: scale(1.12);
+    box-shadow: 0 6px 20px rgba(0, 100, 255, 0.4), 0 0 0 3px rgba(99,102,241,0.18);
 }
 
 .logo-text {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-primary);
+    user-select: none;
 }
 
 .logo-highlight {
-    color: var(--accent-primary);
-    font-weight: 500;
+    color: #6366f1;
+    font-weight: 700;
+}
+
+/* ── Logo Zoom Modal ────────────────────────────────────────── */
+.logo-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-modal-overlay.open {
+    display: flex;
+    animation: modalFadeIn 0.25s ease-out forwards;
+}
+
+.logo-modal-box {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    animation: logoZoomIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    max-width: 360px;
+    width: 90%;
+}
+
+.logo-modal-img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.35), 0 0 0 4px rgba(99,102,241,0.15);
+}
+
+.logo-modal-caption {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.logo-modal-caption strong {
+    color: #6366f1;
+}
+
+.logo-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.logo-modal-close:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes logoZoomIn {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
 }
 
 /* ── Tabs in Header ─────────────────────────────────────────── */
@@ -179,14 +297,15 @@ body {
 
 .tab-btn:hover {
     color: var(--text-primary);
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 .tab-btn.active {
-    background: var(--text-primary);
-    color: #ffffff;
+    background: var(--accent);
+    color: var(--accent-text);
     font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 
 /* ── Hero Section ───────────────────────────────────────────── */
@@ -303,8 +422,8 @@ body {
 
 .drop-zone:hover,
 .drop-zone.drag-over {
-    border-color: var(--text-primary);
-    background: var(--bg-primary);
+    border-color: var(--accent);
+    background: var(--accent-soft);
 }
 
 .drop-icon {
@@ -356,25 +475,27 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    background: #fff;
+    background: var(--bg-card);
     color: var(--text-primary);
     transition: all var(--transition);
 }
 
 .btn:hover {
-    background: var(--bg-secondary);
-    border-color: #d1d5db;
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .btn-primary, .btn-analyze {
-    background: var(--text-primary);
-    color: #fff;
-    border-color: var(--text-primary);
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
 }
 
 .btn-primary:hover, .btn-analyze:hover:not(:disabled) {
-    background: #374151;
-    border-color: #374151;
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--accent-text);
 }
 
 .btn-analyze {
@@ -596,13 +717,13 @@ body {
 }
 
 .step.active .step-indicator {
-    border-color: var(--text-primary);
+    border-color: var(--accent);
     border-width: 4px;
 }
 
 .step.done .step-indicator {
-    border-color: var(--text-primary);
-    background: var(--text-primary);
+    border-color: var(--accent);
+    background: var(--accent);
 }
 
 /* ── Results Section ────────────────────────────────────────── */
@@ -690,7 +811,7 @@ body {
 
 .confidence-fill {
     height: 100%;
-    background: var(--text-primary);
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
     width: 0%;
     transition: width 1s ease-in-out;
 }
