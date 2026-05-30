@@ -216,61 +216,107 @@ def eval_epoch(model, loader, criterion, device):
     return total_loss / n, dice_score / n
 
 
+# ── LGG Kaggle Dataset Loader ─────────────────────────────────────────────────
+
+def load_lgg_tif_pairs(lgg_dir: Path, out_img_dir: Path, out_mask_dir: Path) -> int:
+    """
+    Load Kaggle LGG MRI Segmentation dataset (.tif format).
+    Each patient folder contains: <name>_N.tif (MRI) and <name>_N_mask.tif (mask).
+    Copies and converts them to PNG into the standard data_slices_seg format.
+    """
+    from PIL import Image as PILImage
+    out_img_dir.mkdir(parents=True, exist_ok=True)
+    out_mask_dir.mkdir(parents=True, exist_ok=True)
+
+    patient_dirs = sorted([d for d in lgg_dir.iterdir() if d.is_dir()])
+    print(f"[INFO] Found {len(patient_dirs)} patient folders in LGG dataset")
+
+    total = 0
+    for patient_dir in patient_dirs:
+        # Find all non-mask .tif files
+        img_files = sorted([f for f in patient_dir.glob("*.tif") if "_mask" not in f.name])
+        for img_path in img_files:
+            mask_path = patient_dir / img_path.name.replace(".tif", "_mask.tif")
+            if not mask_path.exists():
+                continue
+
+            img = PILImage.open(img_path).convert("RGB")
+            mask = PILImage.open(mask_path).convert("L")
+
+            stem = f"{patient_dir.name}_{img_path.stem}"
+            img.save(out_img_dir / f"{stem}.png")
+            mask.save(out_mask_dir / f"{stem}.png")
+            total += 1
+
+    print(f"[INFO] Total LGG image-mask pairs prepared: {total}")
+    return total
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Train ACU-Net on BraTS Data")
+    parser = argparse.ArgumentParser(description="Train ACU-Net on BraTS or LGG Data")
     parser.add_argument("--brats_dir", type=str,
         default="dataset_extracted/ASNR-MICCAI-BraTS2023-GLI-Challenge-ValidationData",
-        help="Path to the BraTS folder")
+        help="Path to the BraTS folder (NIfTI format)")
+    parser.add_argument("--lgg_dir", type=str, default=None,
+        help="Path to Kaggle LGG MRI Segmentation dataset (kaggle_3m folder). "
+             "If set, this is used instead of --brats_dir.")
     parser.add_argument("--slices_dir", type=str, default="data_slices_seg",
         help="Where to save extracted PNG slices and masks")
     parser.add_argument("--epochs",   type=int,   default=20)
     parser.add_argument("--lr",       type=float, default=1e-4)
     parser.add_argument("--bs",       type=int,   default=4)
     parser.add_argument("--img_size", type=int,   default=256)
-    parser.add_argument("--max_slices",type=int,   default=15,
-        help="Max axial slices per patient")
+    parser.add_argument("--max_slices", type=int, default=15,
+        help="Max axial slices per patient (BraTS only)")
     parser.add_argument("--regen_slices", action="store_true")
     args = parser.parse_args()
 
-    base_dir    = Path(__file__).parent
-    brats_dir   = Path(args.brats_dir) if Path(args.brats_dir).is_absolute() else base_dir / args.brats_dir
-    slices_dir  = base_dir / args.slices_dir
-    img_dir     = slices_dir / "images"
-    mask_dir    = slices_dir / "masks"
+    base_dir   = Path(__file__).parent
+    slices_dir = base_dir / args.slices_dir
+    img_dir    = slices_dir / "images"
+    mask_dir   = slices_dir / "masks"
 
-    # ── 1. Extract slices and masks ──────────────────────────────────────
+    # ── 1. Extract / prepare slices ──────────────────────────────────────
     if args.regen_slices or not img_dir.exists() or not list(img_dir.glob("*.png")):
-        if not brats_dir.is_dir():
-            print(f"ERROR: BraTS directory not found: {brats_dir}")
-            print("Note: The dataset might not be currently downloaded here. If you just want to run the app via pre-trained weights, you don't need to run this script.")
-            sys.exit(1)
 
-        patient_dirs = sorted(brats_dir.glob("BraTS-GLI-*"))
-        print(f"[INFO] Found {len(patient_dirs)} patient cases in {brats_dir}")
+        if args.lgg_dir:
+            # ── Kaggle LGG .tif dataset ──
+            lgg_dir = Path(args.lgg_dir) if Path(args.lgg_dir).is_absolute() else base_dir / args.lgg_dir
+            if not lgg_dir.is_dir():
+                print(f"ERROR: LGG directory not found: {lgg_dir}")
+                sys.exit(1)
+            load_lgg_tif_pairs(lgg_dir, img_dir, mask_dir)
 
-        total_extracted = 0
-        for pd in patient_dirs:
-            t1c_files = list(pd.glob("*-t1c.nii.gz"))
-            seg_files = list(pd.glob("*-seg.nii.gz"))
-            
-            if not t1c_files or not seg_files:
-                continue
-                
-            saved = extract_tumor_mask_pairs(
-                t1c_files[0], seg_files[0],
-                img_dir, mask_dir,
-                skip_pct=0.15,
-                max_slices=args.max_slices
-            )
-            total_extracted += saved
-            print(f"  [{pd.name}] extracted {saved} image-mask pairs")
+        else:
+            # ── BraTS NIfTI dataset ──
+            brats_dir = Path(args.brats_dir) if Path(args.brats_dir).is_absolute() else base_dir / args.brats_dir
+            if not brats_dir.is_dir():
+                print(f"ERROR: BraTS directory not found: {brats_dir}")
+                sys.exit(1)
 
-        print(f"\n[INFO] Total extracted pairs: {total_extracted}")
+            patient_dirs = sorted(brats_dir.glob("BraTS-GLI-*"))
+            print(f"[INFO] Found {len(patient_dirs)} patient cases in {brats_dir}")
+
+            total_extracted = 0
+            for pd in patient_dirs:
+                t1c_files = list(pd.glob("*-t1c.nii.gz"))
+                seg_files = list(pd.glob("*-seg.nii.gz"))
+                if not t1c_files or not seg_files:
+                    continue
+                saved = extract_tumor_mask_pairs(
+                    t1c_files[0], seg_files[0],
+                    img_dir, mask_dir,
+                    skip_pct=0.15,
+                    max_slices=args.max_slices
+                )
+                total_extracted += saved
+                print(f"  [{pd.name}] extracted {saved} image-mask pairs")
+            print(f"\n[INFO] Total extracted pairs: {total_extracted}")
     else:
-        print("[INFO] Using existing extracted slices.")
-
+        img_count = len(list(img_dir.glob("*.png")))
+        print(f"[INFO] Using existing {img_count} extracted slices in {slices_dir}")
 
     # ── 2. Load Data and Model ───────────────────────────────────────────
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -279,14 +325,12 @@ def main():
     train_loader, val_loader = build_dataloaders(slices_dir, args.bs, args.img_size)
 
     model = ACUNet(in_channels=3, out_channels=1).to(device)
-    
-    # Using the combined DICE + CrossEntropy Loss (from ACU-Net)
     criterion = DiceBCELoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     # ── 3. Training Loop ──────────────────────────────────────────────────
     print(f"\n[START] ACU-Net Training — {args.epochs} Epochs")
-    
+
     model_dir = base_dir / "model"
     model_dir.mkdir(exist_ok=True)
     save_path = model_dir / "brain_tumor_acunet.pth"
@@ -295,10 +339,10 @@ def main():
     for epoch in range(1, args.epochs + 1):
         tr_loss = train_epoch(model, train_loader, criterion, optimizer, device)
         vl_loss, vl_dice = eval_epoch(model, val_loader, criterion, device)
-        
+
         print(f"  Epoch {epoch:02d}/{args.epochs} | "
               f"train loss={tr_loss:.4f} | val loss={vl_loss:.4f} | val dice={vl_dice:.4f}")
-              
+
         if vl_dice > best_val_dice:
             best_val_dice = vl_dice
             torch.save(model.state_dict(), save_path)

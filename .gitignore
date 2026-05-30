@@ -56,6 +56,9 @@ checkpoints/
 dataset_extracted/
 data_slices/
 data/
+archive (2)/
+archive/
+brats_healthy_tumor_9k/
 
 # ─── Uploaded & Generated Images ──────────────────────────────────────────────
 static/uploads/

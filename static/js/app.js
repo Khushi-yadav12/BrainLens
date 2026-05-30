@@ -237,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (data.error) {
                 clearInterval(pctTimer);
+                if (window.loadingStepInterval) clearInterval(window.loadingStepInterval);
                 alert("Error: " + data.error);
                 resetToUpload();
                 return;
@@ -254,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showResults(data);
         } catch (err) {
             clearInterval(pctTimer);
+            if (window.loadingStepInterval) clearInterval(window.loadingStepInterval);
             console.error(err);
             alert("Failed to analyze the image. Please try again.");
             resetToUpload();
@@ -267,25 +269,40 @@ document.addEventListener("DOMContentLoaded", () => {
             el.classList.remove("active", "done");
         });
         document.getElementById("step1").classList.add("active");
+        
+        // Slowly advance up to step 3 while waiting for the server
+        let currentStep = 0;
+        window.currentLoadingStep = 0;
+        window.loadingStepInterval = setInterval(() => {
+            if (window.currentLoadingStep < 2) {
+                document.getElementById(steps[window.currentLoadingStep]).classList.remove("active");
+                document.getElementById(steps[window.currentLoadingStep]).classList.add("done");
+                window.currentLoadingStep++;
+                document.getElementById(steps[window.currentLoadingStep]).classList.add("active");
+            }
+        }, 12000); // Move forward every 12 seconds
     }
 
     function completeLoadingSteps() {
+        if (window.loadingStepInterval) clearInterval(window.loadingStepInterval);
+        
         return new Promise((resolve) => {
             const steps = ["step1", "step2", "step3", "step4"];
-            let i = 0;
+            let i = window.currentLoadingStep;
+            
             const interval = setInterval(() => {
-                if (i > 0) {
-                    document.getElementById(steps[i - 1]).classList.remove("active");
-                    document.getElementById(steps[i - 1]).classList.add("done");
+                if (i >= 0 && i < steps.length) {
+                    document.getElementById(steps[i]).classList.remove("active");
+                    document.getElementById(steps[i]).classList.add("done");
                 }
+                i++;
                 if (i < steps.length) {
                     document.getElementById(steps[i]).classList.add("active");
                 } else {
                     clearInterval(interval);
                     setTimeout(resolve, 400);
                 }
-                i++;
-            }, 500);
+            }, 400);
         });
     }
 
@@ -366,6 +383,8 @@ document.addEventListener("DOMContentLoaded", () => {
             analyzerEmptyState.classList.remove("hidden");
             analyzerResults.classList.add("hidden");
         }
+
+
 
         // Scroll to top of results
         resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
